@@ -8,7 +8,6 @@ import org.bson.Document;
 import java.util.Scanner;
 
 public class CentroComercial {
-    // Cambia esto por tu cadena de MongoDB Atlas si lo usas en la nube
     private static final String CONNECTION_STRING = "mongodb://localhost:27017";
     
     private static MongoCollection<Document> coleccionEmpleados;
@@ -17,12 +16,11 @@ public class CentroComercial {
     private static Scanner scanner = new Scanner(System.in);
 
     // =========================================================
-    //   PALETA DE COLORES ANSI (DISEÑO MÁSTER)
+    //   PALETA DE COLORES ANSI
     // =========================================================
     public static final String RESET = "\u001B[0m";
     public static final String NEGRITA = "\u001B[1m";
     
-    // Colores de texto
     public static final String ROJO = "\u001B[31m";
     public static final String VERDE = "\u001B[32m";
     public static final String AMARILLO = "\u001B[33m";
@@ -31,7 +29,6 @@ public class CentroComercial {
     public static final String CIAN = "\u001B[36m";
     public static final String BLANCO = "\u001B[37m";
     
-    // Fondos (para alertas críticas)
     public static final String FONDO_ROJO = "\u001B[41m";
     public static final String FONDO_VERDE = "\u001B[42m";
 
@@ -39,7 +36,7 @@ public class CentroComercial {
         limpiarPantalla();
         mostrarLogoNexus();
         
-        System.out.print(NEGRITA + CIAN + "[SISTEMA] Inicializando módulos de seguridad... " + RESET);
+        System.out.print(NEGRITA + CIAN + "[SISTEMA] Conectando a la infraestructura central... " + RESET);
         
         try {
             MongoClient mongoClient = MongoClients.create(CONNECTION_STRING);
@@ -50,7 +47,7 @@ public class CentroComercial {
             coleccionTransacciones = database.getCollection("transacciones");
             
             System.out.println(NEGRITA + VERDE + "[ONLINE]" + RESET);
-            Thread.sleep(800); // Pequeña pausa estética inicial
+            simularBarraCarga("Cargando base de datos", 5);
             
             configurarDatosIniciales();
             menuPrincipal();
@@ -67,7 +64,7 @@ public class CentroComercial {
     }
 
     // =========================================================
-    //   MÉTODOS DE CONTROL DE PANTALLA Y TIEMPO
+    //   HERRAMIENTAS DE CONTROL, TIEMPO Y ALINEACIÓN RECTA
     // =========================================================
     private static void limpiarPantalla() {
         try {
@@ -83,22 +80,42 @@ public class CentroComercial {
         }
     }
 
-    // Duerme el sistema por 2 segundos para dar tiempo de lectura y luego limpia
     private static void esperarYLimpiar() {
         try {
-            Thread.sleep(2000); 
+            Thread.sleep(2200); 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         limpiarPantalla();
     }
 
-    // Para listados largos (CCTV, Transacciones) donde el usuario controla el ritmo con ENTER
     private static void presionarEnterParaContinuar() {
-        System.out.print(NEGRITA + AMARILLO + "\n Presione ENTER para volver al menú..." + RESET);
+        System.out.print(NEGRITA + AMARILLO + "\n Presione ENTER para regresar al menú..." + RESET);
         scanner.nextLine();
     }
 
+    private static void simularBarraCarga(String mensaje, int iteraciones) {
+        System.out.print(NEGRITA + BLANCO + " " + mensaje + " [");
+        for (int i = 0; i < iteraciones; i++) {
+            try { Thread.sleep(150); } catch (Exception e) {}
+            System.out.print(VERDE + "■");
+        }
+        System.out.println(BLANCO + "] Exitoso." + RESET);
+        try { Thread.sleep(400); } catch (Exception e) {}
+        limpiarPantalla();
+    }
+
+    // Método mágico: Rellena con espacios exactos ignorando caracteres invisibles de color
+    private static String ajustarContenido(String textoVisible, int anchoMaximo) {
+        int longitudReal = textoVisible.replaceAll("\\u001B\\[[;\\d]*m", "").length();
+        int espaciosNecesarios = anchoMaximo - longitudReal;
+        if (espaciosNecesarios < 0) espaciosNecesarios = 0;
+        return textoVisible + " ".repeat(espaciosNecesarios);
+    }
+
+    // =========================================================
+    //   LOGOTIPO E INICIALIZACIÓN
+    // =========================================================
     private static void mostrarLogoNexus() {
         System.out.println(NEGRITA + MORADO + "======================================================================");
         System.out.println(" ███╗   ██╗███████╗██╗  ██╗██╗   ██╗███████╗   ██████╗ ██████╗ ███╗   ███╗");
@@ -125,11 +142,14 @@ public class CentroComercial {
         }
         if (coleccionTransacciones.countDocuments() == 0) {
             coleccionTransacciones.insertOne(new Document("tipo", "Depósito de Valores").append("monto", 500000.0).append("fecha", "22/05/2026 10:00").append("estado", "Seguro"));
-            coleccionTransacciones.insertOne(new Document("tipo", "Retiro Cajeros Automáticos").append("monto", 4500.0).append("fecha", "22/05/2026 11:15").append("estado", "Seguro"));
-            coleccionTransacciones.insertOne(new Document("tipo", "Apertura Bóveda Principal").append("monto", 0.0).append("fecha", "22/05/2026 14:30").append("estado", "REPORTE: Acceso fuera de horario comercial"));
+            coleccionTransacciones.insertOne(new Document("tipo", "Retiro Cajeros").append("monto", 4500.0).append("fecha", "22/05/2026 11:15").append("estado", "Seguro"));
+            coleccionTransacciones.insertOne(new Document("tipo", "Apertura Bóveda").append("monto", 0.0).append("fecha", "22/05/2026 14:30").append("estado", "Riesgo: Acceso No Autorizado"));
         }
     }
 
+    // =========================================================
+    //   MENÚS DE INTERFAZ DEL SISTEMA
+    // =========================================================
     private static void menuPrincipal() {
         int opcion = 0;
         do {
@@ -157,8 +177,8 @@ public class CentroComercial {
                 case 2: registrarse(); break;
                 case 3:
                     limpiarPantalla();
-                    System.out.println("\n" + AMARILLO + "[NEXUS] Desconectando bases de datos... Hecho." + RESET);
-                    System.out.println(NEGRITA + VERDE + "[NEXUS] Terminal apagada de forma segura. ¡Buen día!" + RESET);
+                    System.out.println("\n" + AMARILLO + "[NEXUS] Cerrando hilos de base de datos... Hecho." + RESET);
+                    System.out.println(NEGRITA + VERDE + "[NEXUS] Terminal apagada correctamente. ¡Buen turno!" + RESET);
                     break;
                 default:
                     System.out.println("\n" + ROJO + "[AVISO] Opción fuera del rango estipulado." + RESET);
@@ -184,22 +204,20 @@ public class CentroComercial {
 
         if (empleadoDoc != null) {
             String rol = empleadoDoc.getString("rol");
-            System.out.println("\n" + VERDE + "[ACCESO CONCEDIDO]" + AMARILLO + " Verificando credenciales..." + RESET);
-            System.out.println(NEGRITA + VERDE + "¡Bienvenid@ de vuelta, " + user.toUpperCase() + "!" + RESET);
+            System.out.println("\n" + VERDE + "[ACCESO CONCEDIDO]" + AMARILLO + " Autenticando token de red..." + RESET);
+            simularBarraCarga("Desbloqueando perfil", 4);
             
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            System.out.println(NEGRITA + VERDE + " ¡Bienvenid@ al sistema corporativo, " + user.toUpperCase() + "! (" + rol + ")" + RESET);
+            try { Thread.sleep(1500); } catch (Exception e) {}
             limpiarPantalla();
             
             switch (rol) {
                 case "Administrador": menuAdministrador(); break;
                 case "Guardia": menuGuardia(); break;
                 case "Gerente": menuGerente(); break;
-                default:
-                    System.out.println(ROJO + "[AVISO] Sin privilegios de panel. Presione ENTER." + RESET);
-                    scanner.nextLine();
             }
         } else {
-            System.out.println("\n" + FONDO_ROJO + BLANCO + NEGRITA + " [DENEGADO] El usuario o la contraseña ingresados no existen. " + RESET);
+            System.out.println("\n" + FONDO_ROJO + BLANCO + NEGRITA + " [DENEGADO] Las credenciales ingresadas son incorrectas. " + RESET);
             esperarYLimpiar();
         }
     }
@@ -215,7 +233,7 @@ public class CentroComercial {
         Document existe = coleccionEmpleados.find(Filters.eq("usuario", user)).first();
         if (existe != null) {
             System.out.println(NEGRITA + MORADO + "└──────────────────────────────────────────────────────────┘" + RESET);
-            System.out.println("\n" + ROJO + "[ERROR] Registro cancelado. El usuario '" + user + "' ya existe." + RESET);
+            System.out.println("\n" + ROJO + "[ERROR] Transacción cancelada. El usuario '" + user + "' ya está registrado." + RESET);
             esperarYLimpiar();
             return;
         }
@@ -240,7 +258,7 @@ public class CentroComercial {
 
         Document nuevoEmpleado = new Document("usuario", user).append("contrasena", pass).append("rol", rol);
         coleccionEmpleados.insertOne(nuevoEmpleado);
-        System.out.println("\n" + FONDO_VERDE + BLANCO + NEGRITA + " [ÉXITO] Sincronizado. Empleado '" + user + "' dado de alta como [" + rol + "]. " + RESET);
+        System.out.println("\n" + FONDO_VERDE + BLANCO + NEGRITA + " [ÉXITO] Base de datos actualizada. Alta procesada para [" + rol + "]. " + RESET);
         esperarYLimpiar();
     }
 
@@ -259,7 +277,7 @@ public class CentroComercial {
             opc = scanner.nextInt(); scanner.nextLine();
 
             switch (opc) {
-                case 1: mostrarEmpleados(); break;
+                case 1: mostrarEmpleados(); presionarEnterParaContinuar(); limpiarPantalla(); break;
                 case 2: eliminarEmpleado(); break;
                 case 3: visualizarCamaras(); break;
                 case 4: limpiarPantalla(); break;
@@ -309,15 +327,21 @@ public class CentroComercial {
         } while (opc != 3);
     }
 
+    // =========================================================
+    //   MÓDULOS DE VISTA E INFORMACIÓN (CUADROS PERFECTOS)
+    // =========================================================
     private static void visualizarCamaras() {
         limpiarPantalla();
-        System.out.println("\n" + NEGRITA + AZUL + "┌──────────────────────────────────────────────────────────────────────┐");
-        System.out.println("│                    CIRCUITO CERRADO DE TELEVISIÓN                    │");
-        System.out.println("├──────────────────────────────────────────────────────────────────────┤" + RESET);
+        System.out.println("\n" + NEGRITA + AZUL + "┌──────────────────────────────────────────────────────────────────────────────┐");
+        System.out.println("│                      CIRCUITO CERRADO DE TELEVISIÓN (CCTV)                   │");
+        System.out.println("├──────────────────────────────────────────────────────────────────────────────┤" + RESET);
+        
         for (Document camara : coleccionCamaras.find()) {
+            String zona = camara.getString("zona");
             String estadoRaw = camara.getString("estado").trim();
-            String estadoColor;
+            String alerta = camara.getString("alerta");
             
+            String estadoColor;
             if (estadoRaw.equalsIgnoreCase("OPERANDO")) {
                 estadoColor = VERDE + "OPERANDO" + RESET;
             } else if (estadoRaw.equalsIgnoreCase("FALLA")) {
@@ -326,10 +350,19 @@ public class CentroComercial {
                 estadoColor = AMARILLO + "ALERTADO" + RESET;
             }
 
-            System.out.printf(NEGRITA + AZUL + "│" + RESET + "  UBICACIÓN: " + CIAN + "%-15s" + RESET + " │ ESTADO: %s │ NOTA: " + AMARILLO + "%-21s" + RESET + NEGRITA + AZUL + " │\n" + RESET,
-                camara.getString("zona"), estadoColor, camara.getString("alerta"));
+            // Construimos la línea interna
+            String col1 = " UBICACIÓN: " + CIAN + zona;
+            String col2 = "│ ESTADO: " + estadoColor;
+            String col3 = "│ NOTA: " + AMARILLO + alerta;
+
+            // Rellenamos de manera controlada para que queden perfectas
+            col1 = ajustarContenido(col1, 26);
+            col2 = ajustarContenido(col2, 20);
+            col3 = ajustarContenido(col3, 30);
+
+            System.out.println(NEGRITA + AZUL + "│" + RESET + col1 + NEGRITA + AZUL + col2 + NEGRITA + AZUL + col3 + NEGRITA + AZUL + "│" + RESET);
         }
-        System.out.println(NEGRITA + AZUL + "└──────────────────────────────────────────────────────────────────────┘" + RESET);
+        System.out.println(NEGRITA + AZUL + "└──────────────────────────────────────────────────────────────────────────────┘" + RESET);
         presionarEnterParaContinuar();
         limpiarPantalla();
     }
@@ -341,52 +374,70 @@ public class CentroComercial {
         
         Document camara = coleccionCamaras.find(Filters.eq("zona", zona)).first();
         if (camara != null) {
-            System.out.print(" Redacte la anomalía observada: ");
+            System.out.print(" Redacte la anomalía observada en el sector: ");
             String problema = scanner.nextLine();
             
             coleccionCamaras.updateOne(Filters.eq("zona", zona),
                 new Document("$set", new Document("estado", "ALERTADO").append("alerta", problema)));
-            System.out.println("\n" + VERDE + "[BASE DE DATOS] Registro de falla guardado y sincronizado." + RESET);
+            System.out.println("\n" + VERDE + "[BASE DE DATOS] Incidencia de seguridad vinculada y guardada." + RESET);
         } else {
-            System.out.println("\n" + ROJO + "[ERROR] Sector erróneo. No existe cámara mapeada." + RESET);
+            System.out.println("\n" + ROJO + "[ERROR] Error de mapeo. El sector '" + zona + "' no existe en el sistema." + RESET);
         }
         esperarYLimpiar(); 
     }
 
     private static void verMovimientosBanco() {
         limpiarPantalla();
-        System.out.println("\n" + NEGRITA + MORADO + "┌─────────────────────────────────────────────────────────────────────────────────┐");
-        System.out.println("│                         REGISTROS FINANCIEROS CENTRALES                         │");
-        System.out.println("├─────────────────────────────────────────────────────────────────────────────────┤" + RESET);
+        System.out.println("\n" + NEGRITA + MORADO + "┌─────────────────────────────────────────────────────────────────────────────────────────┐");
+        System.out.println("│                            REGISTROS MONETARIOS DE AUDITORÍA                            │");
+        System.out.println("├─────────────────────────────────────────────────────────────────────────────────────────┤" + RESET);
+        
         for (Document tx : coleccionTransacciones.find()) {
-            System.out.printf(NEGRITA + MORADO + "│  " + CIAN + "%s" + RESET + " │ Detalle: %-25s │ Monto: " + VERDE + "$%9.2f" + RESET + " │ Obs: %-20s " + NEGRITA + MORADO + "│\n" + RESET,
-                tx.getString("fecha"), tx.getString("tipo"), tx.getDouble("monto"), tx.getString("estado"));
+            String fecha = tx.getString("fecha");
+            String tipo = tx.getString("tipo");
+            double monto = tx.getDouble("monto");
+            String estado = tx.getString("estado");
+
+            String txtMonto = (monto > 0) ? String.format("$%,.2f", monto) : "$0.00";
+
+            String col1 = " " + CIAN + fecha;
+            String col2 = "│ Detalle: " + BLANCO + tipo;
+            String col3 = "│ Monto: " + VERDE + txtMonto;
+            String col4 = "│ Obs: " + AMARILLO + estado;
+
+            col1 = ajustarContenido(col1, 19);
+            col2 = ajustarContenido(col2, 28);
+            col3 = ajustarContenido(col3, 20);
+            col4 = ajustarContenido(col4, 20);
+
+            System.out.println(NEGRITA + MORADO + "│" + RESET + col1 + NEGRITA + MORADO + col2 + NEGRITA + MORADO + col3 + NEGRITA + MORADO + col4 + NEGRITA + MORADO + "│" + RESET);
         }
-        System.out.println(NEGRITA + MORADO + "└─────────────────────────────────────────────────────────────────────────────────┘" + RESET);
+        System.out.println(NEGRITA + MORADO + "└─────────────────────────────────────────────────────────────────────────────────────────┘" + RESET);
         presionarEnterParaContinuar();
         limpiarPantalla();
     }
 
     private static void verProblemasBanco() {
         limpiarPantalla();
-        System.out.println("\n" + NEGRITA + ROJO + "┌──────────────────────────────────────────────────────────────────────┐");
-        System.out.println("│               AUDITORÍA DE RIESGOS AUTOMÁTICA DEL BANCO              │");
-        System.out.println("├──────────────────────────────────────────────────────────────────────┤" + RESET);
+        System.out.println("\n" + NEGRITA + ROJO + "┌──────────────────────────────────────────────────────────────────────────────┐");
+        System.out.println("│                     AUDITORÍA AUTOMÁTICA DE RIESGO DE BANCO                  │");
+        System.out.println("├──────────────────────────────────────────────────────────────────────────────┤" + RESET);
         
         boolean incidencias = false;
         for (Document tx : coleccionTransacciones.find()) {
             String estado = tx.getString("estado");
-            if (estado.toLowerCase().contains("reporte")) {
-                System.out.printf(ROJO + NEGRITA + "   ANOMALÍA DETECTADA (%s)\n" + RESET + "   Evento: %s\n" + AMARILLO + "   Nivel de Riesgo: %s\n\n" + RESET,
-                    tx.getString("fecha"), tx.getString("tipo"), estado);
+            if (estado.toLowerCase().contains("riesgo") || estado.toLowerCase().contains("reporte")) {
+                System.out.println(ROJO + NEGRITA + "   [!] ANOMALÍA FINANCIERA DETECTADA (" + tx.getString("fecha") + ")" + RESET);
+                System.out.println("       Bóveda afectada: " + tx.getString("tipo"));
+                System.out.println(AMARILLO + "       Estado de Alerta: " + estado + "\n" + RESET);
                 incidencias = true;
             }
         }
         
         if (!incidencias) {
-            System.out.println(VERDE + "   Servidores financieros estables. Cero anomalías monetarias hoy." + RESET);
+            System.out.println(VERDE + "   Servidores financieros óptimos. Sin alertas críticas de seguridad." + RESET);
         }
-        System.out.println(NEGRITA + ROJO + "└──────────────────────────────────────────────────────────────────────┘" + RESET);
+        System.out.println(NEGRITA + ROJO + "└──────────────────────────────────────────────────────────────────────────────┘" + RESET);
         presionarEnterParaContinuar();
         limpiarPantalla();
     }
@@ -397,14 +448,21 @@ public class CentroComercial {
         System.out.println("│                PLANTILLA ACTIVA DE NEXUS                 │");
         System.out.println("├──────────────────────────────────────────────────────────┤" + RESET);
         for (Document doc : coleccionEmpleados.find()) {
+            String usuario = doc.getString("usuario");
             String rol = doc.getString("rol");
+            
             String rolColor = BLANCO;
             if (rol.equals("Administrador")) rolColor = ROJO;
             if (rol.equals("Gerente")) rolColor = MORADO;
             if (rol.equals("Guardia")) rolColor = VERDE;
 
-            System.out.printf(NEGRITA + CIAN + "│" + RESET + "   Usuario: %-15s │ Rango: " + rolColor + "%-18s" + RESET + NEGRITA + CIAN + " │\n" + RESET, 
-                doc.getString("usuario"), rol);
+            String col1 = "   Usuario: " + BLANCO + usuario;
+            String col2 = " │ Rango: " + rolColor + rol;
+
+            col1 = ajustarContenido(col1, 28);
+            col2 = ajustarContenido(col2, 28);
+
+            System.out.println(NEGRITA + CIAN + "│" + RESET + col1 + NEGRITA + CIAN + col2 + NEGRITA + CIAN + "│" + RESET);
         }
         System.out.println(NEGRITA + CIAN + "└──────────────────────────────────────────────────────────┘" + RESET);
     }
@@ -415,16 +473,16 @@ public class CentroComercial {
         String userBorrar = scanner.nextLine().trim();
 
         if (userBorrar.equalsIgnoreCase("admin")) {
-            System.out.println("\n" + FONDO_ROJO + BLANCO + NEGRITA + " [RECHAZADO] No es posible revocar permisos al Administrador Root. " + RESET);
+            System.out.println("\n" + FONDO_ROJO + BLANCO + NEGRITA + " [RECHAZADO] No se pueden remover privilegios al Administrador del Core. " + RESET);
             esperarYLimpiar();
             return;
         }
 
         long eliminados = coleccionEmpleados.deleteOne(Filters.eq("usuario", userBorrar)).getDeletedCount();
         if (eliminados > 0) {
-            System.out.println("\n" + VERDE + "[CONFIGURACIÓN] El usuario '" + userBorrar + "' fue eliminado del servidor." + RESET);
+            System.out.println("\n" + VERDE + "[CONFIGURACIÓN] El empleado '" + userBorrar + "' fue revocado con éxito." + RESET);
         } else {
-            System.out.println("\n" + ROJO + "[ERROR] Operación fallida. El usuario ingresado no existe." + RESET);
+            System.out.println("\n" + ROJO + "[ERROR] Operación fallida. El usuario solicitado no existe." + RESET);
         }
         esperarYLimpiar(); 
     }
